@@ -23,26 +23,50 @@ jobs:
           set -euo pipefail
 
           OUTPUT="fanboy_agegate_unified.txt"
+          TMP="$(mktemp)"
 
-          BLOCK_URL="https://raw.githubusercontent.com/easylist/easylist/master/fanboy-addon/fanboy_agegate_general_block.txt"
+          trap 'rm -f "$TMP"' EXIT
 
-          HIDE_URL="https://raw.githubusercontent.com/easylist/easylist/master/fanboy-addon/fanboy_agegate_general_hide.txt"
+          printf '%s\n' \
+            '! Title: Unified Fanboy Agegate' \
+            '! Description: Combined Fanboy Agegate filters' \
+            '! Homepage: https://github.com/easylist/easylist' \
+            '! Source: EasyList Fanboy Agegate' \
+            '' > "$TMP"
 
-          {
-            echo "! Title: Unified Fanboy Agegate"
-            echo "! Description: Combined block and hide filters"
-            echo "! Homepage: https://github.com/easylist/easylist"
-            echo "! Source: Fanboy Agegate"
-            echo
+          append_list() {
+            local name="$1"
+            local url="$2"
 
-            echo "! ===== BLOCK FILTERS ====="
-            curl -fLsS "$BLOCK_URL"
+            echo "! ===== $name =====" >> "$TMP"
+            curl -fLsS "$url" >> "$TMP"
+            printf '\n\n' >> "$TMP"
+          }
 
-            echo
-            echo "! ===== HIDE FILTERS ====="
-            curl -fLsS "$HIDE_URL"
+          BASE="https://raw.githubusercontent.com/easylist/easylist/refs/heads/master/fanboy-addon"
 
-          } > "$OUTPUT"
+          append_list "ALLOWLIST" \
+            "$BASE/fanboy_agegate_allowlist.txt"
+
+          append_list "GENERAL BLOCK" \
+            "$BASE/fanboy_agegate_general_block.txt"
+
+          append_list "GENERAL HIDE" \
+            "$BASE/fanboy_agegate_general_hide.txt"
+
+          append_list "SPECIFIC BLOCK" \
+            "$BASE/fanboy_agegate_specific_block.txt"
+
+          append_list "SPECIFIC HIDE" \
+            "$BASE/fanboy_agegate_specific_hide.txt"
+
+          append_list "SPECIFIC uBO" \
+            "$BASE/fanboy_agegate_specific_uBO.txt"
+
+          append_list "THIRD-PARTY" \
+            "$BASE/fanboy_agegate_thirdparty.txt"
+
+          mv "$TMP" "$OUTPUT"
 
       - name: Commit updated list
         run: |
@@ -52,7 +76,7 @@ jobs:
           git add fanboy_agegate_unified.txt
 
           if ! git diff --cached --quiet; then
-            git commit -m "Update unified Fanboy Agegate list"
+            git commit -m "Update unified Fanboy Agegate filters"
             git push
           else
             echo "No changes detected."
