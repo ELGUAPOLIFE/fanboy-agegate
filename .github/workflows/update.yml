@@ -1,0 +1,59 @@
+
+name: Update Unified Fanboy Agegate
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download and merge filter lists
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          OUTPUT="fanboy_agegate_unified.txt"
+
+          BLOCK_URL="https://raw.githubusercontent.com/easylist/easylist/master/fanboy-addon/fanboy_agegate_general_block.txt"
+
+          HIDE_URL="https://raw.githubusercontent.com/easylist/easylist/master/fanboy-addon/fanboy_agegate_general_hide.txt"
+
+          {
+            echo "! Title: Unified Fanboy Agegate"
+            echo "! Description: Combined block and hide filters"
+            echo "! Homepage: https://github.com/easylist/easylist"
+            echo "! Source: Fanboy Agegate"
+            echo
+
+            echo "! ===== BLOCK FILTERS ====="
+            curl -fLsS "$BLOCK_URL"
+
+            echo
+            echo "! ===== HIDE FILTERS ====="
+            curl -fLsS "$HIDE_URL"
+
+          } > "$OUTPUT"
+
+      - name: Commit updated list
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add fanboy_agegate_unified.txt
+
+          if ! git diff --cached --quiet; then
+            git commit -m "Update unified Fanboy Agegate list"
+            git push
+          else
+            echo "No changes detected."
+          fi
