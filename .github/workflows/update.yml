@@ -28,9 +28,10 @@ jobs:
           trap 'rm -f "$TMP"' EXIT
 
           printf '%s\n' \
-            '! Title: Unified Fanboy Agegate' \
+            '! Title: Fanboy Agegate (Combined)' \
             '! Description: Combined Fanboy Agegate filters' \
-            '! Homepage: https://github.com/easylist/easylist' \
+            '! Expires: 9 days (update frequency)' \
+            '! Homepage: https://github.com/easylist/easylist/tree/master/fanboy-addon' \
             '! Source: EasyList Fanboy Agegate' \
             '' > "$TMP"
 
